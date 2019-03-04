@@ -1,10 +1,9 @@
 
 
-# Pytorch Audio Classification using CRNNs
+# Pytorch Audio Classification: Urban Sounds of variable duration 
 
-#### Classifying Urban Sounds of variable duration 
 
-Classification on the [UrbanSound8K dataset](https://urbansounddataset.weebly.com/urbansound8k.html).
+CNN + LSTM architecture for classification on the [UrbanSound8K](https://urbansounddataset.weebly.com/urbansound8k.html) dataset.
 
 
 Example results:
@@ -14,15 +13,10 @@ Example results:
 
 
 ### Simple Usage
-
+// document
 
 
 ### Results
-
-Architecture used is 
-<p align="center">
-<img src="result_plots/arch.png" width="600px"/>
-</p>
 
 
 Printing example model:
@@ -50,7 +44,8 @@ AudioCRNN(
 Trainable parameters: 139786
 ```
 
-
+##### Augmentation
+// document
 
 ##### 10-Fold Cross Validation
 // need to run this
@@ -63,7 +58,6 @@ Trainable parameters: 139786
 ```bash
 ./run.py train -c config.json --cfg conv.cfg
 ```
-// entire model definition should be in .cfg
 
 ##### Config file explanation
 
@@ -133,18 +127,27 @@ Trainable parameters: 139786
 ./run.py eval -r /saved/0303_151917/checkpoints/model_best.pth
 ```
 
-Then get defined metrics:
+Then obtain defined metrics:
 ```bash
 100%|█████████████████████████████████████████████████████████████████████████████████████████████████| 34/34 [00:03<00:00, 12.68it/s]
 {'avg_precision': '0.725', 'avg_recall': '0.719', 'accuracy': '0.804'}
 ```
 
+### Other
+
+Visualizing architecture used: 
+<p align="center">
+<img src="result_plots/arch.png" width="650px"/>
+</p>
 
 
 ### To Do
-- [] commit jupyter notebook dataset exploration
-- [] CRNN entirely defined in .cfg
-- [] Some bug in 'infer'
-- [] Run 10-fold Cross Validation
+- [ ] commit jupyter notebook dataset exploration
+- [ ] CRNN entirely defined in .cfg
+- [ ] Some bug in 'infer'
+- [ ] Run 10-fold Cross Validation
+- [ ] Comment things
+
+
 
 
