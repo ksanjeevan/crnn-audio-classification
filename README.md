@@ -1,15 +1,21 @@
 
 
-# Pytorch Audio Classification: Urban Sounds of variable duration 
+# PyTorch Audio Classification: Urban Sounds
 
 
-CNN + LSTM architecture for classification on the [UrbanSound8K](https://urbansounddataset.weebly.com/urbansound8k.html) dataset.
+Classification of audio with variable length using a CNN + LSTM architecture on the [UrbanSound8K](https://urbansounddataset.weebly.com/urbansound8k.html) dataset.
 
 
 Example results:
 <p align="center">
 <img src="result_plots/specs.png" width="850px"/>
 </p>
+
+
+### Features
+- Easily define CRNN in .cfg format
+- Spectrogram computation on GPU
+- Audio data augmentation: Cropping, White Noise, Time Stretching (using phase vocoder on GPU!)
 
 
 ### Simple Usage
@@ -120,6 +126,9 @@ Trainable parameters: 139786
 }
 ```
 
+##### TensorboardX
+// document
+
 #### Evaluation
 
 
@@ -137,13 +146,13 @@ Then obtain defined metrics:
 
 Visualizing architecture used: 
 <p align="center">
-<img src="result_plots/arch.png" width="650px"/>
+<img src="result_plots/arch.png" width="400px"/>
 </p>
 
 
 ### To Do
 - [ ] commit jupyter notebook dataset exploration
-- [ ] CRNN entirely defined in .cfg
+- [x] CRNN entirely defined in .cfg
 - [ ] Some bug in 'infer'
 - [ ] Run 10-fold Cross Validation
 - [ ] Comment things

@@ -44,7 +44,7 @@ def eval_main(checkpoint):
     num_classes = len(classes)
     metrics = getattr(net_module, config['metrics'])(num_classes)
 
-    evaluation = ClassificationEvaluator(test_loader, model, batch_store=-1)
+    evaluation = ClassificationEvaluator(test_loader, model, batch_store=3)
     ret = evaluation.evaluate(metrics)
     print(ret)
     return ret

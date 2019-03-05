@@ -6,7 +6,6 @@ from collections import OrderedDict
 import configparser
 
 
-# SHould store the configs in the checkpoints too
 def padding_type(h, pad, params):
 
     if isinstance(pad, list):
@@ -52,9 +51,14 @@ class CFGParser(object):
                     'batchnorm1d':nn.BatchNorm1d,
                     'batchnorm2d':nn.BatchNorm2d,
                     'dropout':nn.Dropout,
-                    'elu':nn.ELU
+                    'elu':nn.ELU,
+                    'lstm':nn.LSTM,
+                    'gru':nn.GRU,
+                    'linear':nn.Linear
         }
-
+        self.seq_ind = 2
+        self.on_convs = True
+        self.on_recur = False
 
     def _adjust_dim(self, vals, shape):
         ret = []
@@ -65,96 +69,115 @@ class CFGParser(object):
                 ret.append(v)
         return ret
 
+    def _is_dense(self, name):
+        return name in ['linear', 'lstm', 'gru']
 
     def _spatial_shape(self, p, k, s):
 
-        spatial = self._get_to_spatial()
-        
+        spatial = self.curr_shape[1:]
         if k is None:
             return spatial
         p, k, s = self._adjust_dim([p,k,s], spatial.shape)
         return (spatial + 2*p - k)//s + 1
 
 
-    def _to_dict(self, conf):
-        return {k:safe_conversion(v) for k,v in conf.items()}
+    def _to_dict(self, conf, name):
+        dic = {k:safe_conversion(v) for k,v in conf.items()}
+        if self._is_dense(name):
+            hidden_size = dic.get('hidden_size', None)
+            new_shape = dic.get('out_features', None) if hidden_size is None else hidden_size
+            new_shape = torch.tensor([new_shape])
+        else:
+            channel = self.curr_shape[0]
+            padding = dic.pop('padding', 0)
+            kernel = dic.get('kernel_size', None)
+            stride = dic.get('stride',None)
 
-    def _get_to_spatial(self):
-        size = self.curr_shape.size()[0]
+            if padding:
+                padding = padding_type(self.curr_shape[1:], padding, dic)
+                dic.update({'padding':tuple(padding.numpy())})
+            
+            out_channels = dic.get('out_channels', channel.item())
+            out_channels = torch.tensor([out_channels])
+            params = [padding, kernel, stride]
+            new_spatial = self._spatial_shape(*params)
 
-        if size <= 2:
-            return self.curr_shape
-        else: 
-            return self.curr_shape[1:]
+            new_shape = torch.cat([out_channels, new_spatial])
 
+        return dic, new_shape
 
     def _build_layer(self, name, dic):
-        channel = self.curr_shape[0]
 
         assert name in self.modules, "Not yet defined layer type."
 
         if name.startswith('conv'):
-            dic.update({'in_channels':channel})
+            dic.update({'in_channels':self.curr_shape[0]})
 
         if name.startswith('batchnorm'):
             # For some reason batchnorm doesn't like 0-d longtensor ??
-            dic.update({'num_features':channel.item()})
+            dic.update({'num_features':self.curr_shape[0].item()})
 
-        out_channels = dic.get('out_channels', channel.item())
-        return self.modules[name](**dic), torch.tensor([out_channels]) 
+        if name.startswith(('lstm', 'gru', 'linear')):
+            self.on_convs = False
+
+            non_seq = [0,1,2]
+            del non_seq[self.seq_ind]
+
+            size = self.curr_shape[non_seq[0]]
+            if self.curr_shape.size(0) > 2:
+                size *= self.curr_shape[non_seq[1]]
+
+            if name.startswith('linear'):
+                dic.update({'in_features':size})
+            else:
+                self.on_recur = True
+                dic.update({'input_size':size})
+                dic.update({'batch_first' : True})
+
+        return self.modules[name](**dic).cuda()
 
 
     def _flow(self, in_shape, build_model):
 
         self.curr_shape = torch.tensor(in_shape) 
 
-        layers = []
-        shapes = [list(self.curr_shape.numpy())]
+        convs = OrderedDict()
+        recur = None
+        dense = OrderedDict()
         
-        for layer in self.config.sections():
+        for l in self.config.sections():
             
-            name = layer.split('_')[0]
-            dic = self._to_dict(self.config[layer])
-            padding = dic.pop('padding', 0)
-            kernel = dic.get('kernel_size', None)
-            stride = dic.get('stride',None)
+            name = l.split('_')[0]
+            dic, new_shape = self._to_dict(self.config[l], name)
 
-            if padding:
-                padding = padding_type(self._get_to_spatial(), padding, dic)
-                dic.update({'padding':tuple(padding.numpy())})
-
-            params = [padding, kernel, stride]
-            new_spatial = self._spatial_shape(*params)
-
-            if build_model:
-                layer, new_channels = self._build_layer(name, dic)
-                new_spatial = torch.cat([new_channels, new_spatial])
-                layers.append(layer)
+            layer = self._build_layer(name, dic)
+            if self.on_convs:
+                convs[l] = layer
+            elif self.on_recur:
+                recur = layer
+                self.on_recur = False
             else:
-                
-                shapes.append(list(new_spatial.numpy()))
+                dense[l] = layer
 
-            self.curr_shape = new_spatial
-
-        if build_model:
-            return layers
-        else:
-            return shapes
+            self.curr_shape = new_shape
+        
+        return convs, recur, dense
 
 
     def get_modules(self, in_shape):
 
-        layers = self._flow(in_shape, build_model=True)
-        return nn.Sequential(
-                OrderedDict(
-                    zip(self.config.sections(), layers)))
+        convs, recur, dense = self._flow(in_shape, build_model=True)
+        out = nn.Sequential()
+
+        if convs:
+            out.convs = nn.Sequential(convs)
+        if recur:
+            out.recur = recur
+        if dense:
+            out.dense = nn.Sequential(dense)
+        return out
 
 
-    def get_spatial_shapes(self, in_shape, last=True):
-        shapes = self._flow(in_shape, build_model=False)
-        if last:
-            return shapes[-1]
-        return shapes
 
 
 if __name__ == '__main__':

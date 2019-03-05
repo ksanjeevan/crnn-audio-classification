@@ -81,14 +81,13 @@ from utils import plot_heatmap, CFGParser
 
 # Architecture inspiration from: https://github.com/keunwoochoi/music-auto_tagging-keras
 class AudioCRNN(BaseModel):
-    # add some require grad false in some palces no?
     def __init__(self, classes, config={}, state_dict=None):
         super(AudioCRNN, self).__init__(config)
         
         in_chan = 2 if config['transforms']['args']['channels'] == 'stereo' else 1
 
         self.classes = classes
-        self.lstm_units = 64 #200 # 400
+        self.lstm_units = 64
         self.lstm_layers = 2
         self.spec = Melspectrogram(hop=None, 
                                 n_mels=128, 
@@ -96,32 +95,25 @@ class AudioCRNN(BaseModel):
                                 norm='whiten', 
                                 stretch_param=[0.5, 0.3])
         
-        #self.bn0 = nn.BatchNorm2d(in_chan)
-
+        
         # shape -> (batch, channel, time, freq)
         # = (batch, 2, max_hop, spec.n_mel)
 
         self.cfg = CFGParser(config['cfg'])
-
-        self.convs = self.cfg.get_modules([in_chan, 500, self.spec.n_mels])
-        freq_out = self.cfg.get_spatial_shapes([self.spec.n_mels])[0]
-
-        lstm_inp = int(self.convs.conv2d_3.out_channels*freq_out)
-
-        self.lstm = nn.LSTM(lstm_inp, self.lstm_units, self.lstm_layers, batch_first=True)
-    
-        self.bn1 = nn.BatchNorm1d(self.lstm_units)
-        #self.drop1 = nn.Dropout(0.3)
-        self.lin1 = nn.Linear(self.lstm_units, len(classes))
-
-        #self.lin1 = nn.Linear(self.lstm_units, self.lin1_out)
-        #self.bn2 = nn.BatchNorm1d(self.lin1_out)
-        #self.drop2 = nn.Dropout(0.3)
-        #self.lin2 = nn.Linear(self.lin1_out, len(classes))
-        
+        self.net = self.cfg.get_modules([in_chan, self.spec.n_mels, 400])
 
     def _many_to_one(self, t, lengths):
         return t[torch.arange(t.size(0)), lengths - 1]
+
+    def modify_lengths(self, lengths):
+        def safe_param(elem):
+            return elem if isinstance(elem, int) else elem[0]
+        
+        for name, layer in self.net.convs.named_children():
+            if name.startswith(('conv2d','maxpool2d')):
+                p, k, s = map(safe_param, [layer.padding, layer.kernel_size,layer.stride]) 
+                lengths = (lengths + 2*p - k)//s + 1
+        return lengths
 
 
     def forward(self, batch):    
@@ -133,34 +125,13 @@ class AudioCRNN(BaseModel):
 
         # xt -> (batch, channel, freq, time)
         xt, lengths = self.spec(xt, lengths)                
-        #print(xt.mean(), xt.std())
-
-        #print(xt.shape, lengths)
-        '''
-        self.spec.prob = 1
-        xt2, lengths2 = self.spec(xt, lengths)
-        self.spec.prob = 0
-        xt3, lengths3 = self.spec(xt, lengths)
-        for i in range(16):
-            plot_heatmap(xt2[i][...,:lengths2[i]].cpu().numpy(), 'plots/plots_pv/%s.png'%i)
-
-        for i in range(16):
-            plot_heatmap(xt3[i][...,:lengths3[i]].cpu().numpy(), 'plots/plots_pv/%s_pv.png'%i)
-        
-        exit()
-        print(xt.shape, lengths)
-        '''
 
         # (batch, channel, freq, time)
-        #xt = self.bn0(xt)
-        xt = self.convs(xt)
+        xt = self.net.convs(xt)
 
-
-        lengths = [self.cfg.get_spatial_shapes([l])[0] for l in lengths]
+        lengths = self.modify_lengths(lengths)
         lengths = [l if l > 0 else 1 for l in lengths]
 
-        #print(lengths)
-        #print('--------')
         # xt -> (batch, time, freq, channel)
         x = xt.transpose(1, -1)
 
@@ -171,17 +142,18 @@ class AudioCRNN(BaseModel):
         x_pack = torch.nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True)
     
         # x -> (batch, time, lstm_out)
-        x_pack, hidden = self.lstm(x_pack)
+        x_pack, hidden = self.net.recur(x_pack)
+
         x, lengths = torch.nn.utils.rnn.pad_packed_sequence(x_pack, batch_first=True)
         
         # (batch, lstm_out)
         x = self._many_to_one(x, lengths)
         
-        x = self.bn1(x)
-        #x = self.drop1(x)
-        x = self.lin1(x)
+        # (batch, classes)
+        x = self.net.dense(x)
 
         x = F.log_softmax(x, dim=1)
+
 
         return x
 
@@ -190,102 +162,4 @@ class AudioCRNN(BaseModel):
         out = torch.exp(out_raw)
         max_ind = out.argmax().item()        
         return self.classes[max_ind], out[:,max_ind].item()
-
-
-
-
-class AudioRNN(BaseModel):
-    # add some require grad false in some palces no?
-    def __init__(self, classes, config={},state_dict=None):
-        super(AudioRNN, self).__init__()
-
-        self.classes = classes
-        self.lstm_units = 400 # 500
-        self.lstm_layers = 2 # 2
-        self.lin1_out = 200 # 200
-        self.spec = Melspectrogram()
-
-        lstm_inp = self.spec.n_mels * 2
-        #self.bn0 = nn.BatchNorm1d(lstm_inp)
-        self.lstm = nn.LSTM(lstm_inp, self.lstm_units, self.lstm_layers, batch_first=True)
-
-        self.lin1 = nn.Linear(self.lstm_units, self.lin1_out)
-        self.drop1 = nn.Dropout(0.3)
-        self.bn1 = nn.BatchNorm1d(self.lin1_out)
-
-        self.lin2 = nn.Linear(self.lin1_out, len(classes))
-        self.drop2 = nn.Dropout(0.3)
-        self.bn2 = nn.BatchNorm1d(len(classes))
-        #self.lin2 = nn.Linear(self.lstm_units, len(classes))
-
-
-    def _init_hidden(self, batch_size):
-        # Remember to us e nn.Parameter here to
-        # not run into cuda() problems.
-        ha = torch.randn(self.lstm_layers, batch_size, self.lstm_units)
-        hb = torch.randn(self.lstm_layers, batch_size, self.lstm_units)
-
-        # So this isn't working cause the params are not on cuda.
-        # look into https://discuss.pytorch.org/t/correct-way-to-declare-hidden-and-cell-states-of-lstm/15745
-        # for more details
-        return (nn.Parameter(ha), nn.Parameter(hb))
-
-
-    def _many_to_one(self, t, lengths):
-        return t[torch.arange(t.size(0)), lengths - 1]
-
-
-    def forward(self, batch):
-    
-        # x-> (batch, time, channel)
-        x, lengths, _ = batch # unpacking seqs, lengths and srs
-
-        # x-> (batch, channel, time)
-        xt = x.float().transpose(1,2)
-
-        # xt -> (batch, channel, time, freq)
-        xt, lengths = self.spec(xt, lengths)
-        #xt = amplitude_to_db(xt)
-        
-        '''
-        for i in range(16):
-            plot_heatmap(xt[i][:,:lengths[i]].cpu().numpy(), 'plots/%s_amp.png'%i)
-
-        for i in range(16):
-            plot_heatmap(xt2[i][:,:lengths[i]].cpu().numpy(), 'plots/%s_db.png'%i)
-
-        print(xt.shape)
-        exit()
-        '''
-
-        # xt -> (batch, time, channel, freq)
-        x = xt.transpose(1,2)
-
-        # xt -> (batch, time, channel*freq)
-        batch, time = x.size()[:2]
-        x = x.reshape(batch, time, -1)
-        
-        x_pack = torch.nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True)
-    
-        # x -> (batch, time, lstm_out)
-        x_pack, hidden = self.lstm(x_pack)
-        x, lengths = torch.nn.utils.rnn.pad_packed_sequence(x_pack, batch_first=True)
-        
-        # (batch, lstm_out)
-        x = self._many_to_one(x, lengths)
-        
-        x = self.lin1(x)
-        x = F.relu(x)
-        x = self.drop1(x)
-        x = self.bn1(x)
-
-        x = self.lin2(x)
-        x = self.drop2(x)
-        x = self.bn2(x)
-
-        x = F.log_softmax(x, dim=1)
-
-        return x
-
-
 
