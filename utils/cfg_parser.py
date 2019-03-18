@@ -38,12 +38,6 @@ class CFGParser(object):
 
     def __init__(self, cfg_fname):
 
-        self.config = configparser.ConfigParser(strict=False,
-            allow_no_value=True)
-
-        self.config.read(cfg_fname)
-        self.curr_shape = None
-
         self.modules = {
                     'conv2d' : nn.Conv2d,
                     'maxpool2d' : nn.MaxPool2d,
@@ -56,9 +50,30 @@ class CFGParser(object):
                     'gru':nn.GRU,
                     'linear':nn.Linear
         }
+        self.config = configparser.ConfigParser(strict=False,
+            allow_no_value=True)
+
+        self.config.read_string(self._preparse(cfg_fname))
+        self.curr_shape = None
         self.seq_ind = 2
         self.on_convs = True
         self.on_recur = False
+
+    def _preparse(self, cfg_fname):
+
+        names = self.modules.keys()
+        counters = dict(zip(['[%s]'%n for n in names], [0]*len(names)))
+        out = []
+        for l in open(cfg_fname, 'r').readlines():
+            l = l.replace('\n','')
+            num = counters.get(l, None)
+            if num is None:
+                out.append(l)
+            else:
+                out.append('[%s_%s]'%(l[1:-1], num))
+                counters[l] += 1
+        return '\n'.join(out)
+
 
     def _adjust_dim(self, vals, shape):
         ret = []
@@ -108,7 +123,7 @@ class CFGParser(object):
 
     def _build_layer(self, name, dic):
 
-        assert name in self.modules, "Not yet defined layer type."
+        assert name in self.modules, "Not yet defined layer type: %s"%name
 
         if name.startswith('conv'):
             dic.update({'in_channels':self.curr_shape[0]})
@@ -134,7 +149,7 @@ class CFGParser(object):
                 dic.update({'input_size':size})
                 dic.update({'batch_first' : True})
 
-        return self.modules[name](**dic).cuda()
+        return self.modules[name](**dic)
 
 
     def _flow(self, in_shape, build_model):
@@ -146,7 +161,7 @@ class CFGParser(object):
         dense = OrderedDict()
         
         for l in self.config.sections():
-            
+
             name = l.split('_')[0]
             dic, new_shape = self._to_dict(self.config[l], name)
 
@@ -160,21 +175,20 @@ class CFGParser(object):
                 dense[l] = layer
 
             self.curr_shape = new_shape
-        
         return convs, recur, dense
 
 
     def get_modules(self, in_shape):
 
         convs, recur, dense = self._flow(in_shape, build_model=True)
-        out = nn.Sequential()
+        out = nn.ModuleDict()
 
         if convs:
-            out.convs = nn.Sequential(convs)
+            out['convs'] = nn.Sequential(convs)
         if recur:
-            out.recur = recur
+            out['recur'] = recur
         if dense:
-            out.dense = nn.Sequential(dense)
+            out['dense'] = nn.Sequential(dense)
         return out
 
 

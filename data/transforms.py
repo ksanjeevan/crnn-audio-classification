@@ -105,7 +105,11 @@ class AugmentationTransform(object):
         elif dist_type == 'uniform':
             dist = lambda x: np.random.uniform(-sig, sig, x)
         elif dist_type == 'half':
-            dist = lambda x: np.abs(np.random.normal(0, sig, x)) 
+            dist = lambda x: np.clip(
+                                np.abs(
+                                    np.random.normal(0, sig, x)),
+                                a_min=0.0,
+                                a_max=0.8)
         else:
             raise ValueError('Unimplemented distribution')
         return dist

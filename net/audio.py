@@ -26,7 +26,7 @@ def spectrogram(sig, n_fft=2048, hop=None, window=None, **kwargs):
         channel, time = sig.size()
         out_shape = [channel, n_fft//2+1, -1, 2]
     else:
-        raise ValueError('Incorrect input dimensions.')
+        raise ValueError('Input tensor dim() must be either 2 or 3.')
 
     sig = sig.reshape(-1, time)
 
@@ -114,7 +114,7 @@ def power_to_db(spec, ref=1.0, amin=1e-10, top_db=80.0):
 
 def spec_whiten(spec, eps=1):    
     
-    along_dim = lambda f, x: f(x, dim=-1).view(-1,1,1,1) 
+    along_dim = lambda f, x: f(x, dim=-1).view(-1,1,1,1)
     
     lspec = torch.log10(spec + eps)
 
@@ -123,7 +123,9 @@ def spec_whiten(spec, eps=1):
     mean = along_dim(torch.mean, lspec.view(batch, -1))
     std = along_dim(torch.std, lspec.view(batch, -1))
 
-    return (lspec - mean)/std
+    resu = (lspec - mean)/std
+
+    return resu
 
 
 class Spectrogram(nn.Module):
@@ -335,7 +337,7 @@ class Melspectrogram(Spectrogram):
         spec = super(Melspectrogram, self).forward(x, lengths)
         if isinstance(spec, tuple):
             spec, lengths = spec
-        
+
         spec = torch.matmul(spec.transpose(2,3), self.mel_fb).transpose(2,3)
 
         if self.norm is not None:

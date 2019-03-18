@@ -138,8 +138,7 @@ class BaseTrainer:
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
                 #self.logger.info('\n\n\tTensorboardX Path: {}\n'.format(self.log_dir))
-
-
+            
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch

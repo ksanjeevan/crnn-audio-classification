@@ -79,8 +79,6 @@ class Trainer(BaseTrainer):
                 _str = 'Train Epoch: {} Loss: {:.6f}'.format(epoch,loss.item()) 
                 _trange.set_description(_str)
 
-
-
         # Add epoch metrics
         loss = total_loss / len(self.data_loader)
         metrics = (total_metrics / len(self.data_loader)).tolist()
@@ -91,7 +89,6 @@ class Trainer(BaseTrainer):
 
         if self.config['data']['format'] == 'image':
             self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
-
 
         log = {
             'loss': loss,
