@@ -7,9 +7,7 @@ from .base_model import BaseModel
 # then kernel_size = stride
 
 from .audio import Melspectrogram
-from utils import plot_heatmap, CFGParser
-
-
+from torchparse import parse_cfg
 
 # Architecture inspiration from: https://github.com/keunwoochoi/music-auto_tagging-keras
 class AudioCRNN(BaseModel):
@@ -27,12 +25,12 @@ class AudioCRNN(BaseModel):
                                 norm='whiten', 
                                 stretch_param=[0.5, 0.3])
 
-        self.cfg = CFGParser(config['cfg'])
-        net = self.cfg.get_modules([in_chan, self.spec.n_mels, 400])
-
-        self.convs = net.convs
-        self.recur = net.recur
-        self.dense = net.dense
+        # shape -> (channel, freq, token_time)
+        net = parse_cfg(config['cfg'], shape=[in_chan, self.spec.n_mels, 400])
+    
+        self.convs = net['convs']
+        self.recur = net['recur']
+        self.dense = net['dense']
      
 
     def _many_to_one(self, t, lengths):
@@ -66,7 +64,6 @@ class AudioCRNN(BaseModel):
 
         # xt -> (batch, time, freq, channel)
         x = xt.transpose(1, -1)
-
 
         # xt -> (batch, time, channel*freq)
         batch, time = x.size()[:2]

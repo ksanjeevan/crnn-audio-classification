@@ -12,6 +12,13 @@ Example results:
 </p>
 
 
+### Dependencies
+
+- [soundfile](https://pypi.org/project/SoundFile/): audio loading
+- [torchparse](https://github.com/ksanjeevan/torchparse): .cfg easy model definition
+- [pytorch/audio](https://github.com/pytorch/audio)
+
+
 ### Features
 - Easily define CRNN in .cfg format
 - Spectrogram computation on GPU
@@ -152,6 +159,7 @@ Visualizing architecture used:
 
 ### To Do
 - [ ] commit jupyter notebook dataset exploration
+- [ ] use torchaudio-contrib for STFT transforms
 - [x] CRNN entirely defined in .cfg
 - [ ] Some bug in 'infer'
 - [ ] Run 10-fold Cross Validation
