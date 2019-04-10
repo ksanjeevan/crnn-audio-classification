@@ -123,6 +123,8 @@ def spec_whiten(spec, eps=1):
     mean = along_dim(torch.mean, lspec.view(batch, -1))
     std = along_dim(torch.std, lspec.view(batch, -1))
 
+    #std
+
     resu = (lspec - mean)/std
 
     return resu

@@ -42,7 +42,7 @@ def setup_logging(logging_path='logs'):
 def list_dir(path):
     filter_dir = lambda x: os.path.isdir(os.path.join(path,x))
     filter_file = lambda x: os.path.isfile(os.path.join(path,x)) and not x.startswith('.') \
-    and not x.split('.')[-1] in ['pyc', 'py']
+    and not x.split('.')[-1] in ['pyc', 'py','txt']
 
     ret = [n for n in os.listdir(path) if filter_dir(n) or filter_file(n)]
     
@@ -57,13 +57,20 @@ def load_audio(path):
     return sf.read(path)
 
 
-def plot_heatmap(arr, fname, title=''):
+def plot_heatmap(arr, fname, pred=''):
     arr = np.flip(arr.mean(0), axis=0)
-
     fig = plt.figure(figsize=(15,10))
-    plt.imshow(arr[::-1], cmap='magma', interpolation='nearest')
-    plt.title(title)
+    ax = fig.add_subplot(111)
+
+    ax.imshow(arr[::-1], cmap='magma', interpolation='nearest')
+
     plt.ylim(plt.ylim()[::-1])
     plt.tight_layout()
+    ax.text(.99, .98, pred, fontsize=20, 
+        color='white',
+        fontweight='bold', 
+        verticalalignment='top', 
+        horizontalalignment='right',
+        transform=ax.transAxes)
     plt.savefig(fname, format='png')
     plt.close()

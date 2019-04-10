@@ -7,7 +7,7 @@ from utils import plot_heatmap, mkdir_p
 
 class ClassificationEvaluator(object):
 
-    def __init__(self, data_loader, model, batch_store=-1):
+    def __init__(self, data_loader, model):
 
         self.data_loader = data_loader
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -15,9 +15,8 @@ class ClassificationEvaluator(object):
         self.model.eval()
 
         self.mel = Melspectrogram(norm='db').to(self.device)
-        self.batch_store = batch_store
 
-    def evaluate(self, metrics):
+    def evaluate(self, metrics, debug=False):
         with torch.no_grad():
             total_metrics = torch.zeros(len(metrics))
             for batch_idx, batch in enumerate(tqdm(self.data_loader)):
@@ -29,7 +28,7 @@ class ClassificationEvaluator(object):
                 self.model.classes
                 batch_size = data[0].size(0)
                 
-                if batch_idx == self.batch_store:
+                if debug:
                     self._store_batch(data, batch_size, output, target)
                 
                 for i, metric in enumerate(metrics):
@@ -56,6 +55,8 @@ class ClassificationEvaluator(object):
         for i in range(batch_size):
             if inds[i] == target[i]:
                 label = self.model.classes[inds[i]]
-                title = "%s (%.1f%%)"%(label, 100*confs[inds[i]])
+                pred_txt = "%s (%.1f%%)"%(label, 100*confs[inds[i]])
                 out_path = os.path.join(path, '%s.png'%i)      
-                plot_heatmap(spec[i][...,:lengths[i]].cpu().numpy(), out_path, title=title)
+                plot_heatmap(spec[i][...,:lengths[i]].cpu().numpy(), 
+                            out_path, 
+                            pred=pred_txt)

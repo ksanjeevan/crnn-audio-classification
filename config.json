@@ -1,0 +1,57 @@
+{
+    "name"          :   "Urban Testing",
+    "data"          :   {
+                            "type"      :   "CSVDataManager",
+                            "path"      :   "/home/kiran/Documents/DATA/UrbanSound8K",
+                            "format"    :   "audio",
+                            "loader"    :   {
+                                                "shuffle"       : true,
+                                                "batch_size"    : 24,
+                                                "num_workers"   : 4,
+                                                "drop_last"     : true
+                                            },
+                            "splits"    :   {
+                                                "train" : [1,2,3,4,5,6,7,8,9], 
+                                                "val"   : [10]                                            
+                                            }
+                        },
+    "transforms"    :   {
+                            "type"      :   "AudioTransforms",
+                            "args"      :   {
+                                                "channels"       : "avg",
+                                                "noise"    : [0.5, 0.005],
+                                                "crop"     : [0.4, 0.25]
+                                            }
+                        },
+    "optimizer"     :   {
+                            "type"      :   "Adam",
+                            "args"      :   {
+                                                "lr"            : 0.0005,
+                                                "weight_decay"  : 0.01,
+                                                "amsgrad"       : true
+                                            }
+                        },
+    "lr_scheduler"   :   {
+                            "type"      :   "StepLR",
+                            "args"      :   {
+                                                "step_size" : 10,
+                                                "gamma"     : 0.5
+                                            }
+                        },
+    "model"         :   {
+                            "type"      :   "AudioCRNN"
+                        },
+    "train"         :   {
+                            "loss"      :   "nll_loss",
+                            "epochs"    :   100,
+                            "save_dir"  :   "saved_crnn_10cv/",
+                            "save_p"    :   1,
+                            "verbosity" :   2,
+                            
+                            "monitor"   :   "min val_loss",
+                            "early_stop":   8,
+                            "tbX"       :   true
+                        },
+    "metrics"       :   "classification_metrics"
+
+}

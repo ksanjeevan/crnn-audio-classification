@@ -44,7 +44,7 @@ def eval_main(checkpoint):
     num_classes = len(classes)
     metrics = getattr(net_module, config['metrics'])(num_classes)
 
-    evaluation = ClassificationEvaluator(test_loader, model, batch_store=3)
+    evaluation = ClassificationEvaluator(test_loader, model)
     ret = evaluation.evaluate(metrics)
     print(ret)
     return ret
@@ -76,7 +76,7 @@ def train_main(config, resume):
     
     t_transforms = _get_transform(config, 'train')
     v_transforms = _get_transform(config, 'val')
-    print(t_transforms.transfs)
+    print(t_transforms)
 
     data_manager = getattr(data_module, config['data']['type'])(config['data'])
     classes = data_manager.classes
@@ -117,9 +117,9 @@ def train_main(config, resume):
                       train_logger=train_logger)
 
     trainer.train()
-
-    duration = 1; freq = 440
-    os.system('play --no-show-progress --null --channels 1 synth %s sine %f'%(duration, freq))
+    return trainer
+    #duration = 1; freq = 440
+    #os.system('play --no-show-progress --null --channels 1 synth %s sine %f'%(duration, freq))
 
 def _test_loader(config):
 

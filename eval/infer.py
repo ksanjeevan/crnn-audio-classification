@@ -34,7 +34,7 @@ class ImageInference:
 
 
 
-
+import os
 from net import Melspectrogram
 from utils import plot_heatmap
 
@@ -53,7 +53,9 @@ class AudioInference:
     def infer(self, path):
         data = load_audio(path)
         sig_t, sr, _ = self.transforms.apply(data, None)
-        length = torch.tensor(sig_t.size(-1))
+
+        length = torch.tensor(sig_t.size(0))
+        
         sr = torch.tensor(sr)
         data = [d.unsqueeze(0).to(self.device) for d in [sig_t, length, sr]]
         label, conf = self.model.predict( data )
@@ -66,9 +68,9 @@ class AudioInference:
         sig, sr = load_audio(path)
         sig = torch.tensor(sig).mean(dim=1).view(1,1,-1).float()
         spec = self.mel(sig)[0]
-        out_path = path.split('.')[0] + '_pred.png'
-        title = "%s (%.1f%%)"%(label, 100*conf)      
-        plot_heatmap(spec.cpu().numpy(), out_path, title=title)
+        out_path = os.path.basename(path).split('.')[0] + '_pred.png'
+        pred_txt = "%s (%.1f%%)"%(label, 100*conf)
+        plot_heatmap(spec.cpu().numpy(), out_path, pred=pred_txt)
         
 
         

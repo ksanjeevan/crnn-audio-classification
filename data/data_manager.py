@@ -92,7 +92,19 @@ class FolderDataManager(object):
         assert name in self.data_splits
         dataset = FolderDataset(self.data_splits[name], load_func=self.load_func, transforms=transfs)
 
-        return data.DataLoader(dataset=dataset, **self.loader_params)
+        return data.DataLoader(dataset=dataset, **self.loader_params, collate_fn=self.pad_seq)
+
+    def pad_seq(self, batch):
+        # sort_ind should point to length
+        sort_ind = 0
+        sorted_batch = sorted(batch, key=lambda x: x[0].size(sort_ind), reverse=True)
+        seqs, srs, labels = zip(*sorted_batch)
+        lengths, srs, labels = map(torch.LongTensor, [[x.size(sort_ind) for x in seqs], srs, labels])
+        # seqs_pad -> (batch, time, channel) 
+        seqs_pad = torch.nn.utils.rnn.pad_sequence(seqs, batch_first=True, padding_value=0)
+        #seqs_pad = seqs_pad_t.transpose(0,1)
+        return seqs_pad, lengths, srs, labels
+
 
 
 class CSVDataManager(object):

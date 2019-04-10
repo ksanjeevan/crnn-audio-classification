@@ -25,14 +25,15 @@ Example results:
 - Audio data augmentation: Cropping, White Noise, Time Stretching (using phase vocoder on GPU!)
 
 
-### Simple Usage
-// document
+### Models
 
+CRNN architecture: 
+<p align="center">
+<img src="result_plots/arch.png" width="400px"/>
+</p>
 
-### Results
+Printing model defined with [torchparse](https://github.com/ksanjeevan/torchparse):
 
-
-Printing example model:
 ```
 AudioCRNN(
   (spec): Melspectrogram(n_mels=128, n_fft=2048, norm=spec_whiten, stretch_param=[0.5, 0.3])
@@ -57,19 +58,22 @@ AudioCRNN(
 Trainable parameters: 139786
 ```
 
-##### Augmentation
-// document
-
-##### 10-Fold Cross Validation
-// need to run this
-
-
 ### Usage
+
+#### Inference
+Run inference on an audio file:
+
+```bash
+./run.py /path/to/audio/file.wav -r path/to/saved/model.pth 
+```
+<p align="left">
+<img src="result_plots/street_music.png" width="500px"/>
+</p>
 
 
 #### Training
 ```bash
-./run.py train -c config.json --cfg conv.cfg
+./run.py train -c config.json --cfg arch.cfg
 ```
 
 ##### Config file explanation
@@ -132,6 +136,8 @@ Trainable parameters: 139786
 
 }
 ```
+##### Augmentation
+// document
 
 ##### TensorboardX
 // document
@@ -140,7 +146,7 @@ Trainable parameters: 139786
 
 
 ```bash
-./run.py eval -r /saved/0303_151917/checkpoints/model_best.pth
+./run.py eval -r /path/to/saved/model.pth
 ```
 
 Then obtain defined metrics:
@@ -149,20 +155,19 @@ Then obtain defined metrics:
 {'avg_precision': '0.725', 'avg_recall': '0.719', 'accuracy': '0.804'}
 ```
 
-### Other
+##### 10-Fold Cross Validation
 
-Visualizing architecture used: 
-<p align="center">
-<img src="result_plots/arch.png" width="400px"/>
-</p>
+| Arch   |      Accuracy      |  AvgPrecision(macro) | Avgrecall(macro) |
+|----------|:-------------:|------:|------:|
+| *crnn.cfg* |  72.3% | 64.3% | 65.03% |
 
 
 ### To Do
 - [ ] commit jupyter notebook dataset exploration
 - [ ] use torchaudio-contrib for STFT transforms
 - [x] CRNN entirely defined in .cfg
-- [ ] Some bug in 'infer'
-- [ ] Run 10-fold Cross Validation
+- [x] Some bug in 'infer'
+- [x] Run 10-fold Cross Validation
 - [ ] Comment things
 
 

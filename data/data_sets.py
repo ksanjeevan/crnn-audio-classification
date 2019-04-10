@@ -27,9 +27,9 @@ class FolderDataset(data.Dataset):
 
         elem = self.data_arr[index]
         data, label = self.load_func(elem['path']), elem['class_idx']
+
         if self.transforms is not None:
             audio, sr, label = self.transforms.apply(data, label)
-
             return audio, sr, label
 
         return data, label

@@ -57,6 +57,9 @@ class AudioTransforms(object):
         # audio -> (time, channel)
         return self.transfs(audio), sr, target
         
+    def __repr__(self):
+        return self.transfs.__repr__()
+
 
 class ProcessChannels(object):
 
@@ -120,7 +123,7 @@ class AugmentationTransform(object):
         return tensor
 
     def transform(self, tensor):
-        NotImplementedError
+        raise NotImplementedError
 
     def __repr__(self):
         param_str = '(prob={}, sig={}, dist_type={})'.format(
@@ -149,11 +152,16 @@ class RandomCropLength(AugmentationTransform):
 
     def transform(self, tensor):
         ind_start, ind_end, perc = self._crop_inds(tensor.shape[0])
-        return tensor[ind_start:ind_end]
+        return self._check_zero(tensor[ind_start:ind_end])
+
+    def _check_zero(self, tensor):
+        return tensor + 1e-8 if tensor.sum() == 0 else tensor
 
     def _crop_inds(self, length):
+        d = self.dist(1)[0]
+        assert d < 0.9
 
-        perc = 1 - self.dist(1)[0]
+        perc = 1 - d
         new_length = np.round(length * perc).astype(int)
         max_start = length - new_length + 1
         ind_start = np.random.randint(0, max_start)
