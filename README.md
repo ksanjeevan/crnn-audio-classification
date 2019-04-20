@@ -12,14 +12,22 @@ Example results:
 </p>
 
 
-### Dependencies
+### Contents
+
+- [Models](#models)
+- [Inference](#inference)
+- [Training](#training)
+- [Evaluation](#evaluation)
+- [Improvements](#improvements)
+
+#### Dependencies
 
 - [soundfile](https://pypi.org/project/SoundFile/): audio loading
 - [torchparse](https://github.com/ksanjeevan/torchparse): .cfg easy model definition
 - [pytorch/audio](https://github.com/pytorch/audio)
 
 
-### Features
+#### Features
 - Easily define CRNN in .cfg format
 - Spectrogram computation on GPU
 - Audio data augmentation: Cropping, White Noise, Time Stretching (using phase vocoder on GPU!)
@@ -157,10 +165,13 @@ Then obtain defined metrics:
 
 ##### 10-Fold Cross Validation
 
-| Arch   |      Accuracy      |  AvgPrecision(macro) | AvgRecall(macro) |
+| CRNN   |      Accuracy      |  AvgPrecision(macro) | AvgRecall(macro) |
 |----------|:-------------:|------:|------:|
-| *crnn.cfg* |  72.3% | 64.3% | 65.0% |
-| *crnn_bi_drop.cfg* |  73.5% | 65.5% | 65.8% |
+| None |  72.3% | 64.3% | 65.0% |
+| Bidirectional, Dropout |  73.5% | 65.5% | 65.8% |
+| Dropout |  73.0% | 65.5% | 65.7% |
+| Bidirectional |  72.8% | 64.3% | 65.2% |
+
 
 ### To Do
 - [ ] commit jupyter notebook dataset exploration
