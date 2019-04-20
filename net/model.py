@@ -23,7 +23,7 @@ class AudioCRNN(BaseModel):
                                 n_mels=128, 
                                 n_fft=2048, 
                                 norm='whiten', 
-                                stretch_param=[0.5, 0.3])
+                                stretch_param=[0.4, 0.4])
 
         # shape -> (channel, freq, token_time)
         self.net = parse_cfg(config['cfg'], in_shape=[in_chan, self.spec.n_mels, 400])

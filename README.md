@@ -157,10 +157,10 @@ Then obtain defined metrics:
 
 ##### 10-Fold Cross Validation
 
-| Arch   |      Accuracy      |  AvgPrecision(macro) | Avgrecall(macro) |
+| Arch   |      Accuracy      |  AvgPrecision(macro) | AvgRecall(macro) |
 |----------|:-------------:|------:|------:|
-| *crnn.cfg* |  72.3% | 64.3% | 65.03% |
-
+| *crnn.cfg* |  72.3% | 64.3% | 65.0% |
+| *crnn_bi_drop.cfg* |  73.5% | 65.5% | 65.8% |
 
 ### To Do
 - [ ] commit jupyter notebook dataset exploration
