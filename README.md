@@ -101,7 +101,8 @@ Run inference on an audio file:
                                             },
                             "splits"    :   { # split configuration
                                                 "train" : [1,2,3,4,5,6,7,8,9], 
-                                                "val"   : [10]                                            }
+                                                "val"   : [10]
+                                            }
                         },
     "transforms"    :   {
                             "type"      :   "AudioTransforms", 
@@ -165,12 +166,28 @@ Then obtain defined metrics:
 
 ##### 10-Fold Cross Validation
 
-| CRNN   |      Accuracy      |  AvgPrecision(macro) | AvgRecall(macro) |
+| Arch   |      Accuracy      |  AvgPrecision(macro) | AvgRecall(macro) |
 |----------|:-------------:|------:|------:|
-| None |  72.3% | 64.3% | 65.0% |
-| Bidirectional, Dropout |  73.5% | 65.5% | 65.8% |
-| Dropout |  73.0% | 65.5% | 65.7% |
-| Bidirectional |  72.8% | 64.3% | 65.2% |
+| CNN |  71.0% | 63.4% | 63.5% |
+| CRNN |  72.3% | 64.3% | 65.0% |
+| CRNN(Bidirectional, Dropout) |  73.5% | 65.5% | 65.8% |
+| CRNN(Dropout) |  73.0% | 65.5% | 65.7% |
+| CRNN(Bidirectional) |  72.8% | 64.3% | 65.2% |
+
+Per fold metrics:
+
+| Fold   |      Accuracy      |  AvgPrecision(macro) | AvgRecall(macro) |
+|----------|:-------------:|------:|------:|
+|1|73.1%|65.1%|66.1%|
+|2|80.7%|69.2%|68.9%|
+|3|62.8%|57.3%|57.5%|
+|4|73.6%|65.2%|64.9%|
+|5|78.4%|70.3%|71.5%|
+|6|73.5%|65.5%|65.9%|
+|7|74.6%|67.0%|66.6%|
+|8|66.7%|62.3%|61.7%|
+|9|71.7%|60.7%|62.7%|
+|10|79.9%|72.2%|71.8%|
 
 
 ### To Do
