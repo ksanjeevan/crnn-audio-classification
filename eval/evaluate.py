@@ -2,7 +2,7 @@ import os
 import torch
 from tqdm import tqdm
 
-from net import Melspectrogram
+from net import MelspectrogramStretch
 from utils import plot_heatmap, mkdir_p
 
 class ClassificationEvaluator(object):
@@ -14,7 +14,7 @@ class ClassificationEvaluator(object):
         self.model = model.to(self.device)
         self.model.eval()
 
-        self.mel = Melspectrogram(norm='db').to(self.device)
+        self.mel = MelspectrogramStretch(norm='db').to(self.device)
 
     def evaluate(self, metrics, debug=False):
         with torch.no_grad():

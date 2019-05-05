@@ -35,7 +35,7 @@ class ImageInference:
 
 
 import os
-from net import Melspectrogram
+from net import MelspectrogramStretch
 from utils import plot_heatmap
 
 class AudioInference:
@@ -47,15 +47,14 @@ class AudioInference:
         self.model.eval()
         self.transforms = transforms
 
-        self.mel = Melspectrogram(norm='db')
-
+        self.mel = MelspectrogramStretch(norm='db')
+        self.mel.eval()
 
     def infer(self, path):
         data = load_audio(path)
         sig_t, sr, _ = self.transforms.apply(data, None)
 
         length = torch.tensor(sig_t.size(0))
-        
         sr = torch.tensor(sr)
         data = [d.unsqueeze(0).to(self.device) for d in [sig_t, length, sr]]
         label, conf = self.model.predict( data )

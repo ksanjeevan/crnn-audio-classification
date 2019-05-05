@@ -4,6 +4,8 @@ from torchvision.utils import make_grid
 from .base_trainer import BaseTrainer
 
 from tqdm import tqdm
+
+# Structure based off https://github.com/victoresque/pytorch-template
 class Trainer(BaseTrainer):
     """
     Trainer class
@@ -86,6 +88,8 @@ class Trainer(BaseTrainer):
         self.writer.add_scalar('loss', loss)
         for i, metric in enumerate(self.metrics):
             self.writer.add_scalar("%s"%metric.__name__, metrics[i])
+
+        
 
         if self.config['data']['format'] == 'image':
             self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))

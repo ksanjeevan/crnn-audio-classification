@@ -8,6 +8,7 @@ import pandas as pd
 from utils.util import mkdir_p
 from utils.visualization import WriterTensorboardX
 
+# Structure based off https://github.com/victoresque/pytorch-template
 class BaseTrainer:
     """
     Base class for all trainers
@@ -74,12 +75,17 @@ class BaseTrainer:
         """
         best_df = None
         not_improved_count = 0
+
+
+        #f = open(os.path.join(self.log_dir, 'lr.txt'), 'w')
+
+
         for epoch in range(self.start_epoch, self.epochs + 1):
             
             # _train_epoch returns dict with train metrics ("metrics"), validation
             # metrics ("val_metrics") and other key,value pairs. Store/update them in log.
             result = self._train_epoch(epoch)
-            
+
             # save logged informations into log dict
             log = {'epoch': epoch}
             for key, value in result.items():
@@ -90,6 +96,8 @@ class BaseTrainer:
                 else:
                     log[key] = value
 
+            c_lr = self.optimizer.param_groups[0]['lr']
+            
             # print logged informations to the screen
             if self.train_logger is not None:
                 self.train_logger.add_entry(log)
@@ -99,11 +107,12 @@ class BaseTrainer:
                     df.columns = ['']
                     #self.logger.info('Epoch: {}'.format(epoch))
                     self.logger.info('{}'.format(df.loc[df.index!='epoch']))
-                    c_lr = self.optimizer.param_groups[0]['lr']
                     self.logger.info('lr_0: {}'.format(c_lr) )
-                    #for key, value in log.items():
-                    #    self.logger.info('    {:15s}: {}'.format(str(key), value))
+                    
 
+            #f.write('%.5f\t%.5f\t%.5f\n'%(c_lr, result['loss'], result['metrics'][0]))
+            #f.flush()
+            self.writer.add_scalar('lr', c_lr)
 
             # evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False

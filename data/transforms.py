@@ -4,7 +4,6 @@ import numpy as np
 
 import torch
 from torchvision import transforms
-import torchaudio.transforms as atransforms
 
 
 
@@ -40,11 +39,11 @@ class AudioTransforms(object):
     def __init__(self, name, args):
         
         self.transfs = {
-            'val': atransforms.Compose([
+            'val': transforms.Compose([
                 ProcessChannels(args['channels']),
                 ToTensorAudio()
             ]),
-            'train': atransforms.Compose([
+            'train': transforms.Compose([
                 ProcessChannels(args['channels']),
                 AdditiveNoise(*args['noise']),
                 RandomCropLength(*args['crop']),

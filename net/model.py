@@ -6,7 +6,7 @@ from .base_model import BaseModel
 # F.max_pool2d needs kernel_size and stride. If only one argument is passed, 
 # then kernel_size = stride
 
-from .audio import Melspectrogram
+from .audio import MelspectrogramStretch
 from torchparse import parse_cfg
 
 # Architecture inspiration from: https://github.com/keunwoochoi/music-auto_tagging-keras
@@ -19,14 +19,14 @@ class AudioCRNN(BaseModel):
         self.classes = classes
         self.lstm_units = 64
         self.lstm_layers = 2
-        self.spec = Melspectrogram(hop=None, 
-                                n_mels=128, 
-                                n_fft=2048, 
+        self.spec = MelspectrogramStretch(hop_len=None, 
+                                num_bands=128, 
+                                fft_len=2048, 
                                 norm='whiten', 
                                 stretch_param=[0.4, 0.4])
 
         # shape -> (channel, freq, token_time)
-        self.net = parse_cfg(config['cfg'], in_shape=[in_chan, self.spec.n_mels, 400])
+        self.net = parse_cfg(config['cfg'], in_shape=[in_chan, self.spec.num_bands, 400])
 
     def _many_to_one(self, t, lengths):
         return t[torch.arange(t.size(0)), lengths - 1]
