@@ -92,67 +92,6 @@ Run inference on an audio file:
 ./run.py train -c config.json --cfg arch.cfg
 ```
 
-##### Config file explanation
-
-```bash
-{
-    "name"          :   "Urban Testing", # Name of the run
-    "data"          :   {
-                            "type"      :   "CSVDataManager", # Type of data manager
-                            "path"      :   "/home/kiran/Documents/DATA/UrbanSound8K", # path to dataset
-                            "format"    :   "audio", # data format
-                            "loader"    :   { # Data loader information
-                                                "batch_size"    : 24,
-                                                "num_workers"   : 4,
-                                                "shuffle"       : true,
-                                                "drop_last"     : true
-                                            },
-                            "splits"    :   { # split configuration
-                                                "train" : [1,2,3,4,5,6,7,8,9], 
-                                                "val"   : [10]
-                                            }
-                        },
-    "transforms"    :   {
-                            "type"      :   "AudioTransforms", 
-                            "args"      :   {
-                                                "channels"       : "avg", # how to treat mono, stereo
-                                                "noise"    : [0.5, 0.005], # [prob of augment, param]
-                                                "crop"     : [0.4, 0.25] # [prob of augmentat, param]
-                                            }
-                        },
-    "optimizer"     :   { # Optimizer config
-                            "type"      :   "Adam",
-                            "args"      :   {
-                                                "lr"            : 0.0005,
-                                                "weight_decay"  : 0.02,
-                                                "amsgrad"       : true
-                                            }
-                        },
-    "lr_scheduler"   :   { # Learning rate schedule
-                            "type"      :   "StepLR",
-                            "args"      :   {
-                                                "step_size" : 10,
-                                                "gamma"     : 0.5
-                                            }
-                        },
-    "model"         :   { # Model type
-                            "type"      :   "AudioCRNN"
-                        },
-    "train"         :   { # Training parameters
-                            "loss"      :   "nll_loss",
-                            "epochs"    :   100,
-                            "save_dir"  :   "saved_testing/",
-                            "save_p"    :   1,
-                            "verbosity" :   2,
-                            
-                            "monitor"   :   "min val_loss",
-                            "early_stop":   8,
-                            "tbX"       :   true
-                        },
-    "metrics"       :   "classification_metrics" # Metrics to use (defined in net/metric.py)
-
-}
-```
 ##### Augmentation
 Dataset transforms:
 
