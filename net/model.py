@@ -19,14 +19,14 @@ class AudioCRNN(BaseModel):
         self.classes = classes
         self.lstm_units = 64
         self.lstm_layers = 2
-        self.spec = MelspectrogramStretch(hop_len=None, 
-                                num_bands=128, 
-                                fft_len=2048, 
+        self.spec = MelspectrogramStretch(hop_length=None, 
+                                num_mels=128, 
+                                fft_length=2048, 
                                 norm='whiten', 
                                 stretch_param=[0.4, 0.4])
 
         # shape -> (channel, freq, token_time)
-        self.net = parse_cfg(config['cfg'], in_shape=[in_chan, self.spec.num_bands, 400])
+        self.net = parse_cfg(config['cfg'], in_shape=[in_chan, self.spec.num_mels, 400])
 
     def _many_to_one(self, t, lengths):
         return t[torch.arange(t.size(0)), lengths - 1]

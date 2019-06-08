@@ -4,11 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Normal, Uniform, HalfNormal
 
-from torchaudio_contrib import STFT, StretchSpecTime, MelFilterbank, ComplexNorm, ApplyFilterbank
-
-
-def torch_angle(t):
-    return torch.atan2(t[...,1], t[...,0])
+from torchaudio_contrib import STFT, TimeStretch, MelFilterbank, ComplexNorm, ApplyFilterbank
 
 
 def amplitude_to_db(spec, ref=1.0, amin=1e-10, top_db=80):
@@ -61,13 +57,14 @@ def spec_whiten(spec, eps=1):
 
     return resu
 
-def _num_stft_bins(lengths, fft_len, hop_len, pad):
-    return (lengths + 2 * pad - fft_len + hop_len) // hop_len
+
+def _num_stft_bins(lengths, fft_length, hop_length, pad):
+    return (lengths + 2 * pad - fft_length + hop_length) // hop_length
 
 
 class MelspectrogramStretch(nn.Module):
 
-    def __init__(self, hop_len=None, num_bands=128, fft_len=2048, norm='whiten', stretch_param=[0.4, 0.4]):
+    def __init__(self, hop_length=None, num_mels=128, fft_length=2048, norm='whiten', stretch_param=[0.4, 0.4]):
 
         super(MelspectrogramStretch, self).__init__()
         
@@ -78,16 +75,16 @@ class MelspectrogramStretch(nn.Module):
             'db' : amplitude_to_db
             }.get(norm, None)
 
-        self.stft = STFT(fft_len=fft_len, hop_len=hop_len)
-        self.pv = StretchSpecTime(hop_len=self.stft.hop_len, num_bins=fft_len//2+1)
+        self.stft = STFT(fft_length=fft_length, hop_length=fft_length//4)
+        self.pv = TimeStretch(hop_length=self.stft.hop_length, num_freqs=fft_length//2+1)
         self.cn = ComplexNorm(power=2.)
 
-        fb = MelFilterbank(num_bands=num_bands).get_filterbank()
+        fb = MelFilterbank(num_mels=num_mels, max_freq=1.0).get_filterbank()
         self.app_fb = ApplyFilterbank(fb)
 
-        self.fft_len = fft_len
-        self.hop_len = self.stft.hop_len
-        self.num_bands = num_bands
+        self.fft_length = fft_length
+        self.hop_length = self.stft.hop_length
+        self.num_mels = num_mels
         self.stretch_param = stretch_param
 
         self.counter = 0
@@ -96,7 +93,7 @@ class MelspectrogramStretch(nn.Module):
         x = self.stft(x)
 
         if lengths is not None:
-            lengths = _num_stft_bins(lengths, self.fft_len, self.hop_len, self.fft_len//2)
+            lengths = _num_stft_bins(lengths, self.fft_length, self.hop_length, self.fft_length//2)
 
         if torch.rand(1)[0] <= self.prob and self.training:
             rate = 1 - self.dist.sample()
@@ -114,6 +111,6 @@ class MelspectrogramStretch(nn.Module):
         return x
 
     def __repr__(self):
-        param_str = '(num_bands={}, fft_len={}, norm={}, stretch_param={})'.format(
-                        self.num_bands, self.fft_len, self.norm.__name__, self.stretch_param)
+        param_str = '(num_mels={}, fft_length={}, norm={}, stretch_param={})'.format(
+                        self.num_mels, self.fft_length, self.norm.__name__, self.stretch_param)
         return self.__class__.__name__ + param_str

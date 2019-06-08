@@ -71,9 +71,6 @@ def train_main(config, resume):
 
     data_config = config['data']
 
-    tsf_name = config['transforms']['type']
-    tsf_args = config['transforms']['args']
-    
     t_transforms = _get_transform(config, 'train')
     v_transforms = _get_transform(config, 'val')
     print(t_transforms)

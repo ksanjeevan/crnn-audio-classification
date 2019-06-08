@@ -18,7 +18,7 @@ Example results:
 - [Inference](#inference)
 - [Training](#training)
 - [Evaluation](#evaluation)
-- [Improvements](#improvements)
+- [To Do](#to-do)
 
 #### Dependencies
 
