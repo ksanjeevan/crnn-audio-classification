@@ -26,7 +26,7 @@ class AudioCRNN(BaseModel):
                                 stretch_param=[0.4, 0.4])
 
         # shape -> (channel, freq, token_time)
-        self.net = parse_cfg(config['cfg'], in_shape=[in_chan, self.spec.num_mels, 400])
+        self.net = parse_cfg(config['cfg'], in_shape=[in_chan, self.spec.n_mels, 400])
 
     def _many_to_one(self, t, lengths):
         return t[torch.arange(t.size(0)), lengths - 1]
@@ -39,14 +39,13 @@ class AudioCRNN(BaseModel):
             #if name.startswith(('conv2d','maxpool2d')):
             if isinstance(layer, (nn.Conv2d, nn.MaxPool2d)):
                 p, k, s = map(safe_param, [layer.padding, layer.kernel_size,layer.stride]) 
-                lengths = (lengths + 2*p - k)//s + 1
+                lengths = ((lengths + 2*p - k)//s + 1).long()
 
         return torch.where(lengths > 0, lengths, torch.tensor(1, device=lengths.device))
 
     def forward(self, batch):    
         # x-> (batch, time, channel)
         x, lengths, _ = batch # unpacking seqs, lengths and srs
-
         # x-> (batch, channel, time)
         xt = x.float().transpose(1,2)
         # xt -> (batch, channel, freq, time)

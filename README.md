@@ -24,7 +24,7 @@ Example results:
 
 - [soundfile](https://pypi.org/project/SoundFile/): audio loading
 - [torchparse](https://github.com/ksanjeevan/torchparse): .cfg easy model definition
-- [torchaudio_contrib](https://github.com/keunwoochoi/torchaudio-contrib): Audio transforms on GPU 
+- [pytorch/audio](https://github.com/pytorch/audio): Audio transforms 
 
 
 #### Features
@@ -161,6 +161,7 @@ Per fold metrics CRNN(Bidirectional, Dropout):
 - [x] CRNN entirely defined in .cfg
 - [x] Some bug in 'infer'
 - [x] Run 10-fold Cross Validation
+- [x] Switch over to pytorch/audio since the merge 
 - [ ] Comment things
 
 

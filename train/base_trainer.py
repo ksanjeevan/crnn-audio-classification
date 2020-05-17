@@ -18,6 +18,7 @@ class BaseTrainer:
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         self.model = model.to(self.device)
 
         self.loss = loss
