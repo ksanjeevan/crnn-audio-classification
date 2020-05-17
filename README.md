@@ -156,6 +156,7 @@ Per fold metrics CRNN(Bidirectional, Dropout):
 
 ### To Do
 - [ ] commit jupyter notebook dataset exploration
+- [x] Switch overt to using pytorch/audio
 - [x] use torchaudio-contrib for STFT transforms
 - [x] CRNN entirely defined in .cfg
 - [x] Some bug in 'infer'
