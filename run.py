@@ -85,7 +85,6 @@ def train_main(config, resume):
     model = getattr(net_module, m_name)(classes, config=config)
     num_classes = len(classes)
 
-    print(model)
 
     loss = getattr(net_module, config['train']['loss'])
     metrics = getattr(net_module, config['metrics'])(num_classes)

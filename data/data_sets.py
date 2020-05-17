@@ -8,8 +8,6 @@ import pandas as pd
 import numpy as np
 import soundfile as sf
 import torch.utils.data as data
-import cv2
-
 
 class FolderDataset(data.Dataset):
 
