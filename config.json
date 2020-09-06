@@ -2,12 +2,12 @@
     "name"          :   "Urban Testing",
     "data"          :   {
                             "type"      :   "CSVDataManager",
-                            "path"      :   "/home/kiran/Documents/DATA/UrbanSound8K",
+                            "path"      :   "C:/Dataset/500970_928025_bundle_archive",
                             "format"    :   "audio",
                             "loader"    :   {
                                                 "shuffle"       : true,
                                                 "batch_size"    : 24,
-                                                "num_workers"   : 4,
+                                                "num_workers"   : 0,
                                                 "drop_last"     : true
                                             },
                             "splits"    :   {
@@ -53,5 +53,4 @@
                             "tbX"       :   true
                         },
     "metrics"       :   "classification_metrics"
-
 }

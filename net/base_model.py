@@ -1,4 +1,6 @@
 import logging
+from typing import Any
+
 import torch.nn as nn
 import numpy as np
 
@@ -7,6 +9,10 @@ class BaseModel(nn.Module):
     """
     Base class for all models
     """
+
+    def _forward_unimplemented(self, *input: Any) -> None:
+        pass
+
     def __init__(self, config=''):
         super(BaseModel, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)

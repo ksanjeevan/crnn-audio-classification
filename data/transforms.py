@@ -1,14 +1,9 @@
-
-
 import numpy as np
-
 import torch
 from torchvision import transforms
 
 
-
 class ImageTransforms(object):
-
     def __init__(self, name, size, scale, ratio, colorjitter):
         self.transfs = {
             'val': transforms.Compose([
@@ -20,8 +15,9 @@ class ImageTransforms(object):
             'train': transforms.Compose([
                 transforms.RandomResizedCrop(size, scale=scale, ratio=ratio),
                 transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(brightness=colorjitter[0], 
-                    contrast=colorjitter[1], 
+                transforms.ColorJitter(
+                    brightness=colorjitter[0],
+                    contrast=colorjitter[1],
                     saturation=colorjitter[2]),
                 transforms.RandomRotation(degrees=15),
                 transforms.ToTensor(),
@@ -29,15 +25,12 @@ class ImageTransforms(object):
             ])
         }[name]
 
-
     def apply(self, data, target):
         return self.transfs(data), target
 
 
 class AudioTransforms(object):
-
     def __init__(self, name, args):
-        
         self.transfs = {
             'val': transforms.Compose([
                 ProcessChannels(args['channels']),
@@ -50,12 +43,12 @@ class AudioTransforms(object):
                 ToTensorAudio()
             ])
         }[name]
-        
+
     def apply(self, data, target):
         audio, sr = data
         # audio -> (time, channel)
         return self.transfs(audio), sr, target
-        
+
     def __repr__(self):
         return self.transfs.__repr__()
 
@@ -65,14 +58,15 @@ class ProcessChannels(object):
     def __init__(self, mode):
         self.mode = mode
 
-    def _modify_channels(self, audio, mode):
+    @staticmethod
+    def _modify_channels(audio, mode):
         if mode == 'mono':
-            new_audio = audio if audio.ndim == 1 else audio[:,:1]
+            new_audio = audio if audio.ndim == 1 else audio[:, :1]
         elif mode == 'stereo':
-            new_audio = np.stack([audio]*2).T if audio.ndim == 1 else audio
+            new_audio = np.stack([audio] * 2).T if audio.ndim == 1 else audio
         elif mode == 'avg':
-            new_audio= audio.mean(axis=1) if audio.ndim > 1 else audio
-            new_audio = new_audio[:,None] 
+            new_audio = audio.mean(axis=1) if audio.ndim > 1 else audio
+            new_audio = new_audio[:, None]
         else:
             new_audio = audio
         return new_audio
@@ -85,7 +79,6 @@ class ProcessChannels(object):
 
 
 class ToTensorAudio(object):
-
     def __call__(self, tensor):
         return torch.from_numpy(tensor)
 
@@ -96,25 +89,20 @@ class ToTensorAudio(object):
 class AugmentationTransform(object):
 
     def __init__(self, prob=None, sig=None, dist_type='uniform'):
-        self.sig, self.dist_type = sig, dist_type 
+        self.sig, self.dist_type = sig, dist_type
         self.dist = self._get_dist(sig, dist_type)
         self.prob = prob
 
-    def _get_dist(self, sig, dist_type):
-        dist = None
+    @staticmethod
+    def _get_dist(sig, dist_type):
         if dist_type == 'normal':
-            dist = lambda x: np.random.normal(0, sig, x) 
+            return lambda x: np.random.normal(0, sig, x)
         elif dist_type == 'uniform':
-            dist = lambda x: np.random.uniform(-sig, sig, x)
+            return lambda x: np.random.uniform(-sig, sig, x)
         elif dist_type == 'half':
-            dist = lambda x: np.clip(
-                                np.abs(
-                                    np.random.normal(0, sig, x)),
-                                a_min=0.0,
-                                a_max=0.8)
+            return lambda x: np.clip(np.abs(np.random.normal(0, sig, x)), a_min=0.0, a_max=0.8)
         else:
             raise ValueError('Unimplemented distribution')
-        return dist
 
     def __call__(self, tensor):
         if np.random.rand() <= self.prob:
@@ -126,21 +114,20 @@ class AugmentationTransform(object):
 
     def __repr__(self):
         param_str = '(prob={}, sig={}, dist_type={})'.format(
-                        self.prob, self.sig, self.dist_type)
+            self.prob, self.sig, self.dist_type)
         return self.__class__.__name__ + param_str
-    
+
 
 class AdditiveNoise(AugmentationTransform):
 
-    def  __init__(self, prob, sig, dist_type='normal'):
+    def __init__(self, prob, sig, dist_type='normal'):
         super(AdditiveNoise, self).__init__(prob, sig, dist_type)
-
 
     def _noise(self, length):
         return self.dist(length)
 
     def transform(self, tensor):
-        noise = self._noise(tensor.shape[0])[:,None]
+        noise = self._noise(tensor.shape[0])[:, None]
         return tensor + noise
 
 
@@ -153,7 +140,8 @@ class RandomCropLength(AugmentationTransform):
         ind_start, ind_end, perc = self._crop_inds(tensor.shape[0])
         return self._check_zero(tensor[ind_start:ind_end])
 
-    def _check_zero(self, tensor):
+    @staticmethod
+    def _check_zero(tensor):
         return tensor + 1e-8 if tensor.sum() == 0 else tensor
 
     def _crop_inds(self, length):
@@ -168,8 +156,6 @@ class RandomCropLength(AugmentationTransform):
         return ind_start, ind_end, perc
 
 
-
-
 class ModifyDuration(object):
 
     def __init__(self, duration):
@@ -181,24 +167,17 @@ class ModifyDuration(object):
     def __repr__(self):
         return self.__class__.__name__ + '(duration={})'.format(self.duration)
 
-
-    def _modify_duration(self, audio, dur):
-        
+    @staticmethod
+    def _modify_duration(audio, dur):
         if dur < len(audio):
             max_index_start = len(audio) - dur
-            index_start = np.random.randint(0,max_index_start)
+            index_start = np.random.randint(0, max_index_start)
             index_end = index_start + dur
             new_audio = audio[index_start:index_end]
         else:
-            ratio = dur/len(audio)
-            full_reps = [audio]*int(ratio)
-            padd_reps = [audio[:round(len(audio)*(ratio%1))]]
+            ratio = dur / len(audio)
+            full_reps = [audio] * int(ratio)
+            padd_reps = [audio[:round(len(audio) * (ratio % 1))]]
             new_audio = np.concatenate(full_reps + padd_reps, axis=0)
-            
-        return new_audio 
 
-
-
-
-
-
+        return new_audio

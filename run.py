@@ -85,7 +85,6 @@ def train_main(config, resume):
     model = getattr(net_module, m_name)(classes, config=config)
     num_classes = len(classes)
 
-
     loss = getattr(net_module, config['train']['loss'])
     metrics = getattr(net_module, config['metrics'])(num_classes)
 
@@ -160,9 +159,10 @@ if __name__ == '__main__':
     # Resolve config vs. resume
     checkpoint = None
     if args.config:
-        config = json.load(open(args.config))
-        config['net_mode'] = args.net_mode
-        config['cfg'] = args.cfg
+        with open(args.config, "r") as f:
+            config = json.load(f)
+            config['net_mode'] = args.net_mode
+            config['cfg'] = args.cfg
     elif args.resume:
         checkpoint = torch.load(args.resume)
         config = checkpoint['config']

@@ -6,11 +6,12 @@ from torchaudio.transforms import Spectrogram, MelSpectrogram , ComplexNorm
 from torchaudio.transforms import TimeStretch, AmplitudeToDB 
 from torch.distributions import Uniform
 
+
 def _num_stft_bins(lengths, fft_length, hop_length, pad):
     return (lengths + 2 * pad - fft_length + hop_length) // hop_length
 
-class MelspectrogramStretch(MelSpectrogram):
 
+class MelspectrogramStretch(MelSpectrogram):
     def __init__(self, hop_length=None, 
                        sample_rate=44100, 
                        num_mels=128, 

@@ -17,7 +17,6 @@ class FolderDataset(data.Dataset):
         self.data_arr = data_arr
         self.load_func = load_func
 
-
     def __len__(self):
         return len(self.data_arr)
 
@@ -31,8 +30,6 @@ class FolderDataset(data.Dataset):
             return audio, sr, label
 
         return data, label
-
-
 
 
 if __name__ == '__main__':

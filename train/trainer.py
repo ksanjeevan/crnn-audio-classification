@@ -15,7 +15,6 @@ class Trainer(BaseTrainer):
     """
     def __init__(self, model, loss, metrics, optimizer, resume, config,
                  data_loader, valid_data_loader=None, lr_scheduler=None, train_logger=None):
-        
         super(Trainer, self).__init__(model, loss, metrics, optimizer, resume, config, train_logger)
 
         self.data_loader = data_loader
@@ -28,7 +27,6 @@ class Trainer(BaseTrainer):
         acc_metrics = np.zeros(len(self.metrics))
         for i, metric in enumerate(self.metrics):
             acc_metrics[i] += metric(output, target)
-            
             #self.writer.add_scalar("%s"%metric.__name__, acc_metrics[i])
             #self.writer.add_scalar(f'{metric.__name__}', acc_metrics[i])
         return acc_metrics
