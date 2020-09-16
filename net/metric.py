@@ -41,27 +41,24 @@ def avg_recall(output, target, num_classes, mode='macro'):
             raise ValueError('Pass a valid type of aggregation to the precision metric.')
 
 
-
-
 def _precision_macro_agg(output, target, num_classes):
-    preds = torch.argmax(output,dim=1)
-
-    ret = torch.zeros(num_classes)
-
+    preds = torch.argmax(output, dim=1)
+    # 原作者在此处写的是torch.zeros(num_classes)
+    # 如果某个batch中缺少某些类别的数据，那么那个类别的数据会算为0，不符合预期
+    ret = torch.tensor([-1.0 for _ in range(num_classes)])
     for ind in target.unique():
 
-        tp = torch.sum( (preds == target) * (preds == ind) ).item()
-        fp = torch.sum( (preds != target) * (preds == ind) ).item()
+        tp = torch.sum((preds == target) * (preds == ind)).item()
+        fp = torch.sum((preds != target) * (preds == ind)).item()
 
         denom = (tp + fp)
         ret[ind] = tp / denom if denom > 0 else 0
-
-    return ret.mean()
-
+    # 结果计算时，不应该把没有数据的类别放进来做平均
+    return torch.tensor([item for item in ret if item >= 0]).mean()
 
 
 def _precision_micro_agg(output, target):
-    preds = torch.argmax(output,dim=1)
+    preds = torch.argmax(output, dim=1)
 
     tp_cumsum = 0
     fp_cumsum = 0
@@ -77,47 +74,45 @@ def _precision_micro_agg(output, target):
     return tp_cumsum / (tp_cumsum + fp_cumsum)
 
 
-
-
 def _recall_macro_agg(output, target, num_classes):
-    preds = torch.argmax(output,dim=1)
+    preds = torch.argmax(output, dim=1)
 
-    ret = torch.zeros(num_classes)
+    # 原作者在此处写的是torch.zeros(num_classes)
+    # 如果某个batch中缺少某些类别的数据，那么那个类别的数据会算为0，不符合预期
+    ret = torch.tensor([-1.0 for _ in range(num_classes)])
 
     for ind in target.unique():
 
-        tp = torch.sum( (preds == target) * (target == ind) ).item()
-        fn = torch.sum( (preds != target) * (target == ind) ).item()
+        tp = torch.sum((preds == target) * (target == ind)).item()
+        fn = torch.sum((preds != target) * (target == ind)).item()
         
         denom = (tp + fn)
         ret[ind] = tp / denom if denom > 0 else 0
-
-    return ret.mean()
-
+    # 结果计算时，不应该把没有数据的类别放进来做平均
+    return torch.tensor([item for item in ret if item >= 0]).mean()
 
 
 def _recall_micro_agg(output, target):
-    preds = torch.argmax(output,dim=1)
+    preds = torch.argmax(output, dim=1)
 
     tp_cumsum = 0
     fn_cumsum = 0
 
     for ind in target.unique():
 
-        tp = torch.sum( (preds == target) * (target == ind) ).item()
-        fn = torch.sum( (preds != target) * (target == ind) ).item()
+        tp = torch.sum((preds == target) * (target == ind)).item()
+        fn = torch.sum((preds != target) * (target == ind)).item()
 
         tp_cumsum += tp
         fn_cumsum += fn
-
 
     return tp_cumsum / (tp_cumsum + fn_cumsum)
 
 
 def classification_metrics(num_classes):
-    avg_p = lambda x,y: avg_precision(x,y,num_classes,mode='macro')
+    avg_p = lambda x, y: avg_precision(x, y, num_classes, mode='macro')
     avg_p.__name__ = 'avg_precision'
 
-    avg_r = lambda x,y: avg_recall(x,y,num_classes,mode='macro')
+    avg_r = lambda x, y: avg_recall(x, y, num_classes, mode='macro')
     avg_r.__name__ = 'avg_recall'
     return [accuracy, avg_p, avg_r]

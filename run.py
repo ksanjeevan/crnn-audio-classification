@@ -37,7 +37,7 @@ def eval_main(checkpoint):
     m_name, sd, classes = _get_model_att(checkpoint)
     model = getattr(net_module, m_name)(classes, config, state_dict=sd)
 
-    print(model)
+    # print(model)
     
     model.load_state_dict(checkpoint['state_dict'])
 
@@ -133,8 +133,6 @@ def _test_loader(config):
     print(tsf.transfs)
     for batch in loader:
         print(disp_batch([batch[0], batch[-1]]))
-
-
 
 
 if __name__ == '__main__':

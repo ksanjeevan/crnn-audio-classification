@@ -74,7 +74,6 @@ class Trainer(BaseTrainer):
             total_loss += loss.item()
             total_metrics += self._eval_metrics(output, target)
 
-
             if self.verbosity >= 2 and batch_idx % self.log_step == 0:                
                 _str = 'Train Epoch: {} Loss: {:.6f}'.format(epoch,loss.item()) 
                 _trange.set_description(_str)
