@@ -11,6 +11,16 @@ from train import Trainer
 
 from eval import ClassificationEvaluator, AudioInference
 
+def p(msg): print(msg)
+
+def isCuda():
+  import torch
+  dtype = torch.float
+  device = torch.device("cuda")
+  print(device)
+  return device=='cuda'
+
+print(f"IsCuda? {isCuda()}")
 
 def _get_transform(config, name):
     tsf_name = config['transforms']['type']
@@ -52,6 +62,7 @@ def eval_main(checkpoint):
 
 def infer_main(file_path, config, checkpoint):
     # Fix bugs
+    p('infer_main')
     if checkpoint is None:
         model = getattr(net_module, config['model']['type'])()
     else:
@@ -112,6 +123,7 @@ def train_main(config, resume):
                       lr_scheduler=lr_scheduler,
                       train_logger=train_logger)
 
+    p('calling train()')
     trainer.train()
     return trainer
     #duration = 1; freq = 440
