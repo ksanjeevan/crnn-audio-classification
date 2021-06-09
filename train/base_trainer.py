@@ -18,6 +18,7 @@ class BaseTrainer:
         self.logger = logging.getLogger(self.__class__.__name__)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f'BaseTrainer.device={self.device}')
 
         self.model = model.to(self.device)
 
