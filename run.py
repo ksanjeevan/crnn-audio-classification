@@ -15,10 +15,9 @@ def p(msg): print(msg)
 
 def isCuda():
   import torch
-  dtype = torch.float
   device = torch.device("cuda")
-  print(device)
-  return device=='cuda'
+  print(f'typeof(device)={type(device)} device={device}')
+  return str(device)=='cuda'
 
 print(f"IsCuda? {isCuda()}")
 
