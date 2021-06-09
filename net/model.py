@@ -61,7 +61,7 @@ class AudioCRNN(BaseModel):
         # xt -> (batch, time, channel*freq)
         batch, time = x.size()[:2]
         x = x.reshape(batch, time, -1)
-        x_pack = torch.nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True)
+        x_pack = torch.nn.utils.rnn.pack_padded_sequence(x, lengths.cpu(), batch_first=True)
     
         # x -> (batch, time, lstm_out)
         x_pack, hidden = self.net['recur'](x_pack)
@@ -123,7 +123,7 @@ class AudioRNN(AudioCRNN):
         # x -> (batch, time, channel*freq)
         batch, time = x.size()[:2]
         x = x.reshape(batch, time, -1)
-        x_pack = torch.nn.utils.rnn.pack_padded_sequence(x, lengths, batch_first=True)
+        x_pack = torch.nn.utils.rnn.pack_padded_sequence(x, lengths.cpu(), batch_first=True)
     
         # x -> (batch, time, lstm_out)
         x_pack, hidden = self.net['recur'](x_pack)
