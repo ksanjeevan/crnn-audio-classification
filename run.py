@@ -94,6 +94,7 @@ def train_main(config, resume):
     m_name = config['model']['type']
     model = getattr(net_module, m_name)(classes, config=config)
     num_classes = len(classes)
+    print(f'num_classes = {num_classes}')
 
 
     loss = getattr(net_module, config['train']['loss'])
@@ -126,7 +127,7 @@ def train_main(config, resume):
     trainer.train()
     return trainer
     #duration = 1; freq = 440
-    #os.system('play --no-show-progress --null --channels 1 synth %s sine %f'%(duration, freq))
+      #os.system('play --no-show-progress --null --channels 1 synth %s sine %f'%(duration, freq))
 
 def _test_loader(config):
 
