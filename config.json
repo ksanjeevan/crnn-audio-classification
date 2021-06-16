@@ -1,5 +1,6 @@
 {
     "name"          :   "Urban Testing",
+    "csvPath"       : "metdata/UrbanSound8K.csv",
     "data"          :   {
                             "type"      :   "CSVDataManager",
                             "path"      :   "/data/UrbanSound8K",
