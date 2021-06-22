@@ -57,10 +57,12 @@ class Trainer(BaseTrainer):
         self.writer.set_step(epoch) 
 
         _trange = tqdm(self.data_loader, leave=True, desc='')
+        print(f'tqdm _trange={_trange}')
 
         for batch_idx, batch in enumerate(_trange):
             batch = [b.to(self.device) for b in batch]
             data, target = batch[:-1], batch[-1]
+            print(f'len(data) = {len(data)}')
             data = data if len(data) > 1 else data[0] 
             #data, target = data.to(self.device), target.to(self.device)
 

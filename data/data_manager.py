@@ -126,7 +126,10 @@ class CSVDataManager(object):
 
         self.load_func = load_formats[config['format']]
     
-        mfile = os.path.join(self.dir_path, 'metadata/UrbanSound8K.csv') 
+        csvPath = 'metadata/UrbanSound8K.csv' if not config['csvPath'] else config['csvPath']
+        print(f'Loading csv configuration from {csvPath}..')
+        
+        mfile = os.path.join(self.dir_path, csvPath)
         metadata_df = pd.read_csv(mfile).sample(frac=1)
         self.metadata_df = self._remove_too_small(metadata_df, 1)
 

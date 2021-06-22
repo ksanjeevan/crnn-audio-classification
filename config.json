@@ -1,8 +1,9 @@
 {
     "name"          :   "Urban Testing",
+    "csvPath"       : "metdata/UrbanSound8K.csv",
     "data"          :   {
                             "type"      :   "CSVDataManager",
-                            "path"      :   "/home/kiran/Documents/DATA/UrbanSound8K",
+                            "path"      :   "/data/UrbanSound8K",
                             "format"    :   "audio",
                             "loader"    :   {
                                                 "shuffle"       : true,
